@@ -2,15 +2,25 @@ import mongoose from "mongoose";
 
 export interface User {
   _id?: mongoose.Schema.Types.ObjectId;
-  fullName: string;
+  name: string;
   email: string;
   password: string;
   age: number;
   gender: string;
-  mobileNumber: string;
-  location?: string;
+  phone: string;
+  location?: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+  address: {
+    street: string;
+    district: string;
+    taluka: string;
+    state: string;
+    country: string;
+  };
   languages?: string[];
-  profilePic?: string;
+  profileImage?: string;
   bio?: string;
   destinations?: string[];
   travelDates?: {

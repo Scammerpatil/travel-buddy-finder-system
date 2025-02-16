@@ -12,14 +12,15 @@ const transporter = nodemailer.createTransport({
 
 export default async function POST(
   email: string,
-  token: string
+  token: string,
+  name: string
 ): Promise<boolean> {
   const template = fs.readFileSync("./src/helper/mailTemplate.ejs", "utf-8");
   const mailOptions = {
     from: "Travel Buddy | No Reply <",
     to: email,
     subject: "Verify Email",
-    html: ejs.render(template, { token }),
+    html: ejs.render(template, { token, name }),
   };
   try {
     await new Promise<void>((resolve, reject) => {

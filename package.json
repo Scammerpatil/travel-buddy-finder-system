@@ -21,7 +21,6 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.1",
-    "typewriter-effect": "^2.21.0",
     "uninstall": "^0.0.0"
   },
   "devDependencies": {

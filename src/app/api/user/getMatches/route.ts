@@ -91,12 +91,12 @@ const calculateMatchScore = (user1, user2) => {
   }
 
   // Shared Interests (15%)
-  // const commonInterests = user1.interests.filter((interest) =>
-  //   user2.interests.includes(interest)
-  // );
-  // if (commonInterests.length > 0) {
-  //   score += (commonInterests.length / user1.interests.length) * 15;
-  // }
+  const commonInterests = user1.interests.filter((interest) =>
+    user2.interests.includes(interest)
+  );
+  if (commonInterests.length > 0) {
+    score += (commonInterests.length / user1.interests.length) * 15;
+  }
 
   // Companion Type Preference (5%)
   if (

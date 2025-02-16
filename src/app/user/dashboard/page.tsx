@@ -15,7 +15,7 @@ const UserDashboardPage = () => {
   return (
     <div className="w-full flex items-center justify-center flex-col gap-4">
       <h1 className="text-3xl font-bold text-primary mb-4">
-        Welcome, {user?.fullName}!
+        Welcome, {user?.name}!
       </h1>
       <div className="flex flex-row flex-wrap gap-4 items-center justify-center">
         <DashboardCard

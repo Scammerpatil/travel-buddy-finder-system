@@ -72,7 +72,7 @@ const SideNav = ({ children }: { children: React.ReactNode }) => {
                 <ThemeToggler />
                 <div className="dropdown dropdown-left cursor-pointer bg-transparent">
                   <Image
-                    src={user.profilePic!}
+                    src={user.profileImage!}
                     alt="Avatar"
                     className="rounded-full"
                     width={40}
@@ -87,13 +87,13 @@ const SideNav = ({ children }: { children: React.ReactNode }) => {
                     {/* User Initial */}
                     <div className="flex items-center justify-center mb-2">
                       <div className="flex items-center justify-center w-12 h-12 bg-primary text-base-conten rounded-full text-xl font-bold">
-                        {user.fullName[0].toUpperCase()}
+                        {user.name[0].toUpperCase()}
                       </div>
                     </div>
 
                     <div className="flex items-center justify-center">
                       <span className="text-lg font-semibold text-base-content">
-                        {user.fullName}
+                        {user.name}
                       </span>
                     </div>
                     <hr className="my-2 border-base-content" />
@@ -118,7 +118,7 @@ const SideNav = ({ children }: { children: React.ReactNode }) => {
           </div>
           <div>
             {" "}
-            <main className="overflow-y-auto h-[calc(100vh-5.3rem)] bg-base-100 p-10 text-base-content">
+            <main className="overflow-y-auto h-[calc(100vh-5rem)] bg-base-100 p-10 text-base-content">
               {children}
             </main>
           </div>

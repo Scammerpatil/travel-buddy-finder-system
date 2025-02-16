@@ -7,16 +7,14 @@ dbConfig();
 
 export async function POST(req: NextRequest) {
   try {
-    const { fullName, email, gender, age, password, isVerified, profilePic } =
-      await req.json();
+    const { formData } = await req.json();
     if (
-      !fullName ||
-      !email ||
-      !age ||
-      !gender ||
-      !password ||
-      !isVerified ||
-      !profilePic
+      !formData.name ||
+      !formData.email ||
+      !formData.phone ||
+      !formData.password ||
+      !formData.profileImage ||
+      !formData.gender
     ) {
       return NextResponse.json(
         { message: "Please provide all the required fields" },
@@ -25,7 +23,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate password length
-    if (password.length < 8) {
+    if (formData.password.length < 8) {
       return NextResponse.json(
         { message: "Password must be at least 8 characters long" },
         { status: 400 }
@@ -33,34 +31,20 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if the user already exists
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email: formData.email });
     if (userExists) {
       return NextResponse.json(
         { message: "User already exists" },
         { status: 400 }
       );
     }
-    // Check if the username already exists
-    const usernameExists = await User.findOne({ email });
-    if (usernameExists) {
-      return NextResponse.json(
-        { message: "Email already exists" },
-        { status: 400 }
-      );
-    }
-    const hashedPassword = bcrypt.hashSync(password, 10);
-    // Create a new user
+    const hashedPassword = bcrypt.hashSync(formData.password, 10);
     const newUser = new User({
-      fullName,
-      email,
+      ...formData,
       password: hashedPassword,
-      isVerified,
-      age,
-      gender,
-      profilePic,
+      isVerified: true,
     });
 
-    // Save the user to the database
     await newUser.save();
     return NextResponse.json(
       { message: "User created successfully", newUser },

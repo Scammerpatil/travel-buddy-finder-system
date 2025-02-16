@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
 const UserSchema = new Schema({
-  fullName: {
+  name: {
     type: String,
     required: true,
   },
@@ -16,9 +16,8 @@ const UserSchema = new Schema({
   },
   age: {
     type: Number,
-    required: true,
   },
-  mobileNumber: {
+  phone: {
     type: Number,
   },
   gender: {
@@ -26,14 +25,28 @@ const UserSchema = new Schema({
     enum: ["Male", "Female", "Other"],
     required: true,
   },
-  location: {
-    type: String,
+  address: {
+    street: { type: String },
+    district: { type: String },
+    taluka: { type: String },
+    state: { type: String, default: "Maharashtra" },
+    country: { type: String, default: "India" },
   },
-  languages: [{ type: String }],
-  profilePic: { type: String },
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: true,
+    },
+    coordinates: {
+      type: [Number],
+      required: true,
+    },
+  },
+  profileImage: { type: String },
   bio: { type: String },
 
-  // Travel Preferences
+  languages: [{ type: String }],
   destinations: [{ type: String }],
   travelDates: {
     start: { type: Date },
@@ -50,15 +63,18 @@ const UserSchema = new Schema({
   interests: [{ type: String }],
   preferredCompanion: {
     type: String,
-    enum: ["Anyone", "Same Gender", "Small Group", "Large Group"],
+    enum: ["Anyone", "Solo", "Same Gender", "Small Group", "Large Group"],
   },
 
-  // Safety Features
   isVerified: { type: Boolean, default: false },
   emergencyContact: {
     name: { type: String },
     phone: { type: String },
     relationship: { type: String },
+  },
+
+  ratings: {
+    type: Number,
   },
 
   createdAt: { type: Date, default: Date.now },

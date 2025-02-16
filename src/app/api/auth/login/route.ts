@@ -18,59 +18,35 @@ const setTokenCookie = (response: NextResponse, token: string) => {
 };
 
 export async function POST(req: NextRequest) {
-  const { email, password } = await req.json();
+  const { formData } = await req.json();
 
-  if (!email || !password) {
+  if (!formData.email || !formData.password) {
     return NextResponse.json(
       { message: "Please fill all the fields", success: false },
       { status: 400 }
     );
   }
-  // Check for admin login
-  if (
-    email === process.env.ADMIN_EMAIL ||
-    (process.env.ADMIN_USER_ID && password === process.env.ADMIN_PASSWORD)
-  ) {
-    const data = {
-      email: process.env.ADMIN_EMAIL,
-      role: "admin",
-      isAdminApproved: true,
-      fullName: "Admin",
-      profileImageUrl: "https://sesrcp.in/Uploads/Logo/1595215490.png",
-    };
-    const token = generateToken(data);
-    const response = NextResponse.json({
-      route: "/admin/dashboard",
-      message: "Login Success",
-      success: true,
-      user: {
-        email: process.env.ADMIN_EMAIL,
-        role: "admin",
-        isAdminApproved: true,
-        name: "Admin",
-        profileImageUrl: "https://sesrcp.in/Uploads/Logo/1595215490.png",
-      },
-    });
-    setTokenCookie(response, token);
-    return response;
-  }
-
   // User login logic
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: formData.email });
   if (!user) {
     return NextResponse.json(
       { message: "User not found", success: false },
       { status: 400 }
     );
   }
-  const isPasswordValid = await bcryptjs.compare(password, user.password);
+  const isPasswordValid = await bcryptjs.compare(
+    formData.password,
+    user.password
+  );
 
   if (isPasswordValid) {
     const data = {
       id: user._id,
       role: user.role,
       email: user.email,
-      fullName: user.fullName,
+      name: user.name,
+      profilImage: user.profileImage,
+      isVerified: user.isVerified,
     };
     const token = generateToken(data);
     const response = NextResponse.json({

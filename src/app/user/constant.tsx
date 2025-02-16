@@ -6,6 +6,10 @@ import {
   IconMessage,
   IconSettings,
   IconHelpCircle,
+  IconCar,
+  IconWallet,
+  IconStar,
+  IconBuildingSkyscraper,
 } from "@tabler/icons-react";
 
 export const SIDENAV_ITEMS: SideNavItem[] = [
@@ -20,14 +24,39 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     icon: <IconUsers width="24" height="24" />,
   },
   {
+    title: "Suggested Locations",
+    path: "/user/suggestions",
+    icon: <IconMap width="24" height="24" />,
+  },
+  {
     title: "My Trips",
     path: "/user/my-trips",
     icon: <IconMap width="24" height="24" />,
   },
   {
+    title: "Vehicle Bookings",
+    path: "/user/vehicle-bookings",
+    icon: <IconCar width="24" height="24" />,
+  },
+  {
+    title: "Hotel Bookings",
+    path: "/user/hotel-bookings",
+    icon: <IconBuildingSkyscraper width="24" height="24" />,
+  },
+  {
+    title: "Split Costs",
+    path: "/user/split-costs",
+    icon: <IconWallet width="24" height="24" />,
+  },
+  {
     title: "Messages",
     path: "/user/messages",
     icon: <IconMessage width="24" height="24" />,
+  },
+  {
+    title: "Rate Users",
+    path: "/user/rating",
+    icon: <IconStar width="24" height="24" />,
   },
   {
     title: "Settings",
