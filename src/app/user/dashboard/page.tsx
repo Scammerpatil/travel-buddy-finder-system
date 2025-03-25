@@ -13,8 +13,8 @@ const UserDashboardPage = () => {
   const { user } = useUser();
   if (!user) return null;
   return (
-    <div className="w-full flex items-center justify-center flex-col gap-4">
-      <h1 className="text-3xl font-bold text-primary mb-4">
+    <>
+      <h1 className="text-4xl font-bold text-center uppercase text-primary">
         Welcome, {user?.name}!
       </h1>
       <div className="flex flex-row flex-wrap gap-4 items-center justify-center">
@@ -40,7 +40,7 @@ const UserDashboardPage = () => {
           path="/user/support"
         />
       </div>
-    </div>
+    </>
   );
 };
 

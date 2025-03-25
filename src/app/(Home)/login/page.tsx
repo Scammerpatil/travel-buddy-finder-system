@@ -22,7 +22,7 @@ const SignUp = () => {
         router.push(data.data.route);
         return data.data.message;
       },
-      error: (err: unknown) => {
+      error: (err: any) => {
         console.log(err);
         return err.response.data.message;
       },
@@ -63,7 +63,7 @@ const SignUp = () => {
                   className="btn btn-outline btn-primary btn-block max-w-[200px]"
                   onClick={handleSubmit}
                 >
-                  Sign Up
+                  Login
                 </button>
               </div>
               <p className="text-center mt-3 text-base text-base-content">
@@ -72,7 +72,7 @@ const SignUp = () => {
                   className="text-primary cursor-pointer"
                   onClick={() => router.push("/signup")}
                 >
-                  signup
+                  Sign Up
                 </span>
               </p>
             </div>

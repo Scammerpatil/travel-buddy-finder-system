@@ -73,10 +73,13 @@ const UserSchema = new Schema({
     relationship: { type: String },
   },
 
-  ratings: {
-    type: Number,
-  },
-
+  ratings: [
+    {
+      user: { type: Schema.Types.ObjectId, ref: "User" },
+      rating: { type: Number },
+      review: { type: String },
+    },
+  ],
   createdAt: { type: Date, default: Date.now },
 });
 

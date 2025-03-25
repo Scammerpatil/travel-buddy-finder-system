@@ -37,4 +37,11 @@ export interface User {
     phone: string;
     relationship: string;
   };
+  ratings: [
+    {
+      user: User;
+      rating: number;
+      review: string;
+    }
+  ];
 }

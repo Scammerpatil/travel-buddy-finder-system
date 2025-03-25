@@ -7,7 +7,9 @@ import {
   MAHARASHTRA_TALUKAS,
   POPULAR_DESTINATION,
 } from "@/utils/Constants";
-import axios from "axios";
+import { IconCloudUpload, IconUpload } from "@tabler/icons-react";
+import axios, { AxiosResponse } from "axios";
+import { parse } from "path";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -37,21 +39,6 @@ export default Settings;
 const Profile = ({ user }: { user: User }) => {
   const [formData, setFormData] = useState(user || {});
   const [isEditing, setIsEditing] = useState(false);
-  const [imagePreview, setImagePreview] = useState(
-    formData.profileImage || "/default-profile.png"
-  );
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files[0]) {
-      const file = files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.email || !formData.age) {
@@ -75,284 +62,86 @@ const Profile = ({ user }: { user: User }) => {
       return { ...prevData, [category]: updatedList };
     });
   };
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!formData.name) {
+      toast.error("Name is required for images");
+      return;
+    }
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size exceeds 5MB");
+        return;
+      }
+      const imageResponse = axios.postForm("/api/helper/upload-img", {
+        file,
+        name: formData.name,
+        folderName: "profileImages",
+      });
+      toast.promise(imageResponse, {
+        loading: "Uploading Image...",
+        success: (data: AxiosResponse) => {
+          setFormData({
+            ...formData,
+            profileImage: data.data.path,
+          });
+          return "Image Uploaded Successfully";
+        },
+        error: (err: unknown) => `This just happened: ${err}`,
+      });
+    }
+  };
 
   return (
     <>
-      {/* Profile Image */}
-      <div className="my-6">
-        <div className="flex items-center gap-4">
-          <img
-            src={imagePreview}
-            alt="Profile Pic"
-            className="rounded-full h-40 w-40 object-cover border border-primary"
-          />
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="file-input file-input-bordered"
-            disabled={!isEditing}
-          />
-        </div>
-      </div>
-
-      {/* Personal Details */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4">Personal Details</h2>
-        <hr className="mb-4" />
-        <div className="space-y-4 mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 gap-y-6">
-            {/* Name */}
-            <div className="flex flex-col">
-              <label
-                className="text-base-content font-medium mb-1"
-                htmlFor="fullName"
-              >
-                Name <span className="text-error">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.name || ""}
-                onChange={(e) => {
-                  setFormData({ ...formData, name: e.target.value });
-                }}
-                className="input input-bordered w-full text-base-content"
-                placeholder="Full Name"
-                disabled={!isEditing}
-                required
+      <h1 className="text-xl font-semibold text-base-content sm:text-2xl">
+        User settings
+      </h1>
+      <div className="grid grid-cols-1 pt-6 xl:grid-cols-3 xl:gap-4">
+        <div className="col-span-full xl:col-auto">
+          <div className="p-4 mb-4 bg-base-200 border border-base-content rounded-lg shadow-sm 2xl:col-span-2">
+            <div className="items-center sm:flex xl:block 2xl:flex sm:space-x-4 xl:space-x-0 2xl:space-x-4">
+              <img
+                className="mb-4 rounded-lg w-28 h-28 sm:mb-0 xl:mb-4 2xl:mb-0"
+                src={user.profileImage}
+                alt={user.name}
               />
-            </div>
-
-            {/* Mobile Number */}
-            <div className="flex flex-col">
-              <label
-                className="text-base-content font-medium mb-1"
-                htmlFor="mobileNumber"
-              >
-                Mobile Number
-              </label>
-              <input
-                type="text"
-                value={formData.phone || ""}
-                onChange={(e) => {
-                  setFormData({ ...formData, phone: e.target.value });
-                }}
-                className="input input-bordered w-full text-base-content"
-                placeholder="Mobile Number"
-                disabled={!isEditing}
-              />
-            </div>
-
-            {/* Email */}
-            <div className="flex flex-col">
-              <label
-                className="text-base-content font-medium mb-1"
-                htmlFor="email"
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                value={formData.email || ""}
-                readOnly
-                className="input input-bordered w-full text-base-content"
-                placeholder="Mobile Number"
-                disabled
-              />
-            </div>
-
-            {/* Gender */}
-            <div className="flex flex-col">
-              <label
-                className="text-base-content font-medium mb-1"
-                htmlFor="gender"
-              >
-                Gender
-              </label>
-              <input
-                type="text"
-                id="gender"
-                name="gender"
-                value={formData.gender || ""}
-                readOnly
-                className="input input-bordered w-full text-base-content"
-                placeholder="Gender"
-                disabled
-              />
-            </div>
-            {/* Age */}
-            <div className="flex flex-col">
-              <label className="text-base-content font-medium mb-1">Age</label>
-              <input
-                type="number"
-                value={formData.age || ""}
-                onChange={(e) => {
-                  setFormData({ ...formData, age: parseInt(e.target.value) });
-                }}
-                className="input input-bordered w-full text-base-content"
-                placeholder="Age"
-                disabled={!isEditing}
-                min={15}
-                max={80}
-                required
-              />
+              <div>
+                <h3 className="mb-1 text-xl font-bold text-base-content">
+                  Profile picture
+                </h3>
+                <div className="mb-4 text-sm text-base-content/50">
+                  JPG Max size of 800K
+                </div>
+                <div className="flex items-center space-x-4">
+                  <input
+                    type="file"
+                    id="profileImageInput"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleProfileImageChange}
+                  />
+                  <button
+                    className="btn btn-primary flex items-center space-x-2"
+                    onClick={() =>
+                      document.getElementById("profileImageInput")?.click()
+                    }
+                  >
+                    <IconCloudUpload size={20} />
+                    <span>Upload Image</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-          {/* Bio */}
-          <div className="flex flex-col mt-4">
-            <label className="text-base-content font-medium mb-1" htmlFor="bio">
-              Bio
-            </label>
-            <textarea
-              value={formData.bio || ""}
-              onChange={(e) => {
-                setFormData({ ...formData, bio: e.target.value });
-              }}
-              className="textarea textarea-bordered w-full text-base-content"
-              placeholder="Tell something about yourself..."
-              disabled={!isEditing}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Address Details */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4">Address Details</h2>
-        <hr className="mb-4" />
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 gap-y-6">
-            {/* Street */}
-            <div className="flex flex-col">
+          <div className="p-4 mb-4 bg-base-200 border border-base-content rounded-lg shadow-sm 2xl:col-span-2">
+            <h3 className="mb-4 text-xl font-semibold">Travel Preferences</h3>
+            <div className="mb-4">
               <label
-                className="text-base-content font-medium mb-1"
-                htmlFor="fullName"
+                htmlFor="budget"
+                className="block mb-2 text-sm font-medium text-base-content"
               >
-                Street <span className="text-error">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.address?.street || ""}
-                onChange={(e) => {
-                  setFormData({
-                    ...formData,
-                    address: { ...formData.address, street: e.target.value },
-                  });
-                }}
-                className="input input-bordered w-full text-base-content"
-                placeholder="Your Street"
-                disabled={!isEditing}
-                required
-              />
-            </div>
-
-            {/* District */}
-            <div className="flex flex-col">
-              <label
-                className="text-base-content font-medium mb-1"
-                htmlFor="mobileNumber"
-              >
-                District
-              </label>
-              <select
-                value={formData.address?.district || ""}
-                onChange={(e) => {
-                  setFormData({
-                    ...formData,
-                    address: { ...formData.address, district: e.target.value },
-                  });
-                }}
-                className="input input-bordered w-full text-base-content"
-                disabled={!isEditing}
-              >
-                <option value="" disabled>
-                  Select District
-                </option>
-                {MAHARASHTRA_DISTRICTS.map((district) => (
-                  <option key={district} value={district}>
-                    {district}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* District */}
-            <div className="flex flex-col">
-              <label
-                className="text-base-content font-medium mb-1"
-                htmlFor="mobileNumber"
-              >
-                Taluka
-              </label>
-              <select
-                value={formData.address?.taluka || ""}
-                onChange={(e) => {
-                  setFormData({
-                    ...formData,
-                    address: { ...formData.address, taluka: e.target.value },
-                  });
-                }}
-                className="input input-bordered w-full text-base-content"
-                disabled={!isEditing}
-              >
-                <option value="" disabled>
-                  Select Taluka
-                </option>
-                {formData.address?.district &&
-                  MAHARASHTRA_TALUKAS[formData.address.district].map(
-                    (taluka, idx) => (
-                      <option key={idx} value={taluka}>
-                        {taluka}
-                      </option>
-                    )
-                  )}
-              </select>
-            </div>
-
-            {/* State */}
-            <div className="flex flex-col">
-              <label className="text-base-content font-medium mb-1">
-                State
-              </label>
-              <input
-                type="text"
-                value={formData.address?.state || "Maharashtra"}
-                className="input input-bordered w-full text-base-content"
-                placeholder="Mobile Number"
-                disabled
-              />
-            </div>
-
-            {/* Country */}
-            <div className="flex flex-col">
-              <label className="text-base-content font-medium mb-1">
-                Country
-              </label>
-              <input
-                type="text"
-                value={formData.address?.country || "India"}
-                readOnly
-                className="input input-bordered w-full text-base-content"
-                placeholder="Gender"
-                disabled
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Travel Prefereces */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4">Travel Preferences</h2>
-        <hr className="mb-4" />
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 gap-y-6">
-            <div className="flex flex-col">
-              <label
-                className="text-base-content font-medium mb-1"
-                htmlFor="fullName"
-              >
-                Budget <span className="text-error">*</span>
+                Budget
               </label>
               <select
                 value={formData.budget || ""}
@@ -362,7 +151,7 @@ const Profile = ({ user }: { user: User }) => {
                     budget: e.target.value,
                   });
                 }}
-                className="input input-bordered w-full text-base-content"
+                className="select select-bordered w-full text-base-content"
                 disabled={!isEditing}
                 required
               >
@@ -376,12 +165,12 @@ const Profile = ({ user }: { user: User }) => {
                 ))}
               </select>
             </div>
-            <div className="flex flex-col">
+            <div className="mb-6">
               <label
-                className="text-base-content font-medium mb-1"
-                htmlFor="fullName"
+                htmlFor="travelStyle"
+                className="block mb-2 text-sm font-medium text-base-content"
               >
-                Travel Style <span className="text-error">*</span>
+                Travel Style
               </label>
               <select
                 value={formData.travelStyle || ""}
@@ -391,7 +180,7 @@ const Profile = ({ user }: { user: User }) => {
                     travelStyle: e.target.value,
                   });
                 }}
-                className="input input-bordered w-full text-base-content"
+                className="select select-primary select-bordered w-full text-base-content"
                 disabled={!isEditing}
                 required
               >
@@ -405,9 +194,12 @@ const Profile = ({ user }: { user: User }) => {
                 ))}
               </select>
             </div>
-            <div className="flex flex-col">
-              <label className="text-base-content font-medium mb-1">
-                Preferred Companion <span className="text-error">*</span>
+            <div className="mb-6">
+              <label
+                htmlFor="preferredCompanion"
+                className="block mb-2 text-sm font-medium text-base-content"
+              >
+                Preferred Companion
               </label>
               <select
                 value={formData.preferredCompanion || ""}
@@ -417,7 +209,7 @@ const Profile = ({ user }: { user: User }) => {
                     preferredCompanion: e.target.value,
                   });
                 }}
-                className="input input-bordered w-full text-base-content"
+                className="select select-primary select-bordered w-full text-base-content"
                 disabled={!isEditing}
                 required
               >
@@ -431,46 +223,23 @@ const Profile = ({ user }: { user: User }) => {
                 ))}
               </select>
             </div>
-          </div>
-          <div className="flex flex-col space-y-5">
-            <div className="flex flex-col">
-              <label className="text-base-content font-medium mb-1 ">
-                Languages <span className="text-error">*</span>
-                <div className="flex flex-row items-center space-x-2 flex-wrap">
-                  {LANGUAGES.map((option) => (
-                    <label
-                      key={option}
-                      className="flex flex-row items-center space-x-2"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData["languages"]?.includes(option)}
-                        onChange={() =>
-                          handleCheckboxChange("languages", option)
-                        }
-                        className="checkbox checkbox-primary"
-                        disabled={!isEditing}
-                      />
-                      <span>{option}</span>
-                    </label>
-                  ))}
-                </div>
-              </label>
-            </div>
-            <div className="flex flex-col">
-              <label
-                className="text-base-content font-medium mb-1"
-                htmlFor="fullName"
-              >
-                Interests <span className="text-error">*</span>
-              </label>
-              <div className="flex flex-row items-center space-x-2 flex-wrap">
-                {travelOptions.interests.map((option) => (
-                  <label key={option} className="flex items-center space-x-2">
+            <div className="flex flex-row justify-around">
+              <div className="mb-6">
+                <label
+                  htmlFor="languages"
+                  className="block mb-2 text-sm font-medium text-base-content"
+                >
+                  Languages
+                </label>
+                {LANGUAGES.map((option) => (
+                  <label
+                    key={option}
+                    className="flex flex-row items-center space-x-2 space-y-2"
+                  >
                     <input
                       type="checkbox"
-                      checked={formData["interests"]?.includes(option)}
-                      onChange={() => handleCheckboxChange("interests", option)}
+                      checked={formData["languages"]?.includes(option)}
+                      onChange={() => handleCheckboxChange("languages", option)}
                       className="checkbox checkbox-primary"
                       disabled={!isEditing}
                     />
@@ -478,17 +247,18 @@ const Profile = ({ user }: { user: User }) => {
                   </label>
                 ))}
               </div>
-            </div>
-            <div className="flex flex-col">
-              <label
-                className="text-base-content font-medium mb-1"
-                htmlFor="fullName"
-              >
-                Destinations <span className="text-error">*</span>
-              </label>
-              <div className="flex flex-row items-center space-x-2 flex-wrap">
+              <div className="mb-6">
+                <label
+                  htmlFor="Destinations"
+                  className="block mb-2 text-sm font-medium text-base-content"
+                >
+                  Destinations
+                </label>
                 {travelOptions.destinations.map((option) => (
-                  <label key={option} className="flex items-center space-x-2">
+                  <label
+                    key={option}
+                    className="flex items-center space-x-2 space-y-2"
+                  >
                     <input
                       type="checkbox"
                       checked={formData["destinations"]?.includes(option)}
@@ -503,90 +273,427 @@ const Profile = ({ user }: { user: User }) => {
                 ))}
               </div>
             </div>
+            <div className="mb-6">
+              <label
+                htmlFor="interests"
+                className="block mb-2 text-sm font-medium text-base-content"
+              >
+                Interests
+              </label>
+              <div className="flex flex-row flex-wrap justify-around gap-3">
+                {travelOptions.interests.map((option) => (
+                  <label
+                    key={option}
+                    className="flex flex-row items-center justify-center gap-2"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formData["interests"]?.includes(option)}
+                      onChange={() => handleCheckboxChange("interests", option)}
+                      className="checkbox checkbox-primary"
+                      disabled={!isEditing}
+                    />
+                    <span>{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <button
+              className="btn btn-primary mt-4"
+              onClick={handleSubmit}
+              disabled={!isEditing}
+            >
+              Save All
+            </button>
           </div>
         </div>
-      </div>
-
-      {/* Emergency Contact */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4">Emergency Contact</h2>
-        <hr className="mb-4" />
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 gap-y-6">
-            {/* Name */}
-            <div className="flex flex-col">
-              <label className="text-base-content font-medium mb-1">
-                Name <span className="text-error">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.emergencyContact?.name || ""}
-                onChange={(e) => {
-                  setFormData({
-                    ...formData,
-                    emergencyContact: {
-                      name: e.target.value,
-                      phone: formData.emergencyContact?.phone || "",
-                      relationship:
-                        formData.emergencyContact?.relationship || "",
-                    },
-                  });
-                }}
-                className="input input-bordered w-full text-base-content"
-                placeholder="Emergency Contact Name"
+        <div className="col-span-2">
+          <div className="p-8 mb-4 bg-base-300 border border-base-content rounded-lg shadow-sm 2xl:col-span-2">
+            <h3 className="mb-4 text-xl font-semibold text-base-content">
+              General information
+            </h3>
+            <form>
+              <div className="grid grid-cols-6 gap-6">
+                <div className="col-span-6 sm:col-span-3">
+                  <label
+                    htmlFor="first-name"
+                    className="block mb-2 text-sm font-medium text-base-content"
+                  >
+                    Name <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="first-name"
+                    id="first-name"
+                    value={formData.name || ""}
+                    onChange={(e) => {
+                      setFormData({ ...formData, name: e.target.value });
+                    }}
+                    disabled={!isEditing}
+                    className="input input-primary w-full"
+                    required
+                  />
+                </div>
+                <div className="col-span-6 sm:col-span-3">
+                  <label
+                    htmlFor="mobileNumber"
+                    className="block mb-2 text-sm font-medium text-base-content"
+                  >
+                    Mobile Number <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    id="mobileNumber"
+                    value={formData.phone || ""}
+                    onChange={(e) => {
+                      setFormData({ ...formData, phone: e.target.value });
+                    }}
+                    disabled={!isEditing}
+                    className="input input-primary w-full"
+                    required
+                  />
+                </div>
+                <div className="col-span-6 sm:col-span-3">
+                  <label
+                    htmlFor="mobileNumber"
+                    className="block mb-2 text-sm font-medium text-base-content"
+                  >
+                    Email <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    id="mobileNumber"
+                    value={formData.email || ""}
+                    onChange={(e) => {
+                      setFormData({ ...formData, email: e.target.value });
+                    }}
+                    disabled={!isEditing}
+                    className="input input-primary w-full"
+                    required
+                  />
+                </div>
+                <div className="col-span-6 sm:col-span-3">
+                  <label
+                    htmlFor="gender"
+                    className="block mb-2 text-sm font-medium text-base-content"
+                  >
+                    Gender <span className="text-error">*</span>
+                  </label>
+                  <select
+                    value={formData.gender || ""}
+                    onChange={(e) => {
+                      setFormData({ ...formData, gender: e.target.value });
+                    }}
+                    disabled={!isEditing}
+                    className="select select-primary w-full"
+                    required
+                  >
+                    <option value="" disabled>
+                      Select Your Gender
+                    </option>
+                    <option value="Male" disabled>
+                      Male
+                    </option>
+                    <option value="Female" disabled>
+                      Female
+                    </option>
+                    <option value="Other" disabled>
+                      Other
+                    </option>
+                  </select>
+                </div>
+                <div className="col-span-6 sm:col-span-3">
+                  <label
+                    htmlFor="age"
+                    className="block mb-2 text-sm font-medium text-base-content"
+                  >
+                    Age <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.age || ""}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        age: parseInt(e.target.value),
+                      });
+                    }}
+                    disabled={!isEditing}
+                    className="input input-primary w-full"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="col-span-12 sm:col-span-3 mt-4">
+                <label
+                  htmlFor="bio"
+                  className="block mb-2 text-sm font-medium text-base-content"
+                >
+                  Bio <span className="text-error">*</span>
+                </label>
+                <textarea
+                  value={formData.bio || ""}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      bio: e.target.value,
+                    });
+                  }}
+                  disabled={!isEditing}
+                  className="textarea textarea-primary w-full"
+                  required
+                />
+              </div>
+            </form>
+            <button
+              className="btn btn-primary mt-4"
+              onClick={handleSubmit}
+              disabled={!isEditing}
+            >
+              Save All
+            </button>
+          </div>
+          <div className="p-8 mb-4 bg-base-300 border border-base-content rounded-lg shadow-sm 2xl:col-span-2">
+            <h3 className="mb-4 text-xl font-semibold text-base-content">
+              Address Details
+            </h3>
+            <form>
+              <div className="grid grid-cols-6 gap-6">
+                <div className="col-span-6 sm:col-span-3">
+                  <label
+                    htmlFor="street"
+                    className="block mb-2 text-sm font-medium text-base-content"
+                  >
+                    Street <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="street"
+                    id="street"
+                    value={formData.address?.street || ""}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        address: {
+                          ...formData.address,
+                          street: e.target.value,
+                        },
+                      });
+                    }}
+                    disabled={!isEditing}
+                    className="input input-primary w-full"
+                    required
+                  />
+                </div>
+                <div className="col-span-6 sm:col-span-3">
+                  <label
+                    htmlFor="district"
+                    className="block mb-2 text-sm font-medium text-base-content"
+                  >
+                    District <span className="text-error">*</span>
+                  </label>
+                  <select
+                    id="district"
+                    name="district"
+                    value={formData.address?.district || ""}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        address: {
+                          ...formData.address,
+                          district: e.target.value,
+                        },
+                      });
+                    }}
+                    className="select select-primary w-full text-base-content"
+                    disabled={!isEditing}
+                  >
+                    <option value="" disabled>
+                      Select District
+                    </option>
+                    {MAHARASHTRA_DISTRICTS.map((district) => (
+                      <option key={district} value={district}>
+                        {district}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-span-6 sm:col-span-3">
+                  <label
+                    htmlFor="taluka"
+                    className="block mb-2 text-sm font-medium text-base-content"
+                  >
+                    Taluka <span className="text-error">*</span>
+                  </label>
+                  <select
+                    id="taluka"
+                    name="taluka"
+                    value={formData.address?.taluka || ""}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        address: {
+                          ...formData.address,
+                          taluka: e.target.value,
+                        },
+                      });
+                    }}
+                    className="select select-primary w-full text-base-content"
+                    disabled={!isEditing}
+                  >
+                    <option value="" disabled>
+                      Select District
+                    </option>
+                    {formData.address?.district &&
+                      MAHARASHTRA_TALUKAS[formData.address.district].map(
+                        (taluka, idx) => (
+                          <option key={idx} value={taluka}>
+                            {taluka}
+                          </option>
+                        )
+                      )}
+                  </select>
+                </div>
+                <div className="col-span-6 sm:col-span-3">
+                  <label
+                    htmlFor="state"
+                    className="block mb-2 text-sm font-medium text-base-content"
+                  >
+                    State <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="state"
+                    id="state"
+                    value={formData.address?.state || ""}
+                    disabled
+                    readOnly
+                    className="input input-primary w-full input-bordered"
+                  />
+                </div>
+                <div className="col-span-6 sm:col-span-3">
+                  <label
+                    htmlFor="country"
+                    className="block mb-2 text-sm font-medium text-base-content"
+                  >
+                    Country <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="country"
+                    id="country"
+                    value={formData.address?.country || "India"}
+                    disabled
+                    readOnly
+                    className="input input-primary w-full input-bordered"
+                  />
+                </div>
+              </div>
+              <button
+                className="btn btn-primary mt-4"
+                onClick={handleSubmit}
                 disabled={!isEditing}
-                required
-              />
-            </div>
-            {/* Phone */}
-            <div className="flex flex-col">
-              <label className="text-base-content font-medium mb-1">
-                Phone <span className="text-error">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.emergencyContact?.phone || ""}
-                onChange={(e) => {
-                  setFormData({
-                    ...formData,
-                    emergencyContact: {
-                      name: formData.emergencyContact?.name || "",
-                      phone: e.target.value,
-                      relationship:
-                        formData.emergencyContact?.relationship || "",
-                    },
-                  });
-                }}
-                className="input input-bordered w-full text-base-content"
-                placeholder="Emergency Contact Phone"
+              >
+                Save All
+              </button>
+            </form>
+          </div>
+          <div className="p-8 mb-4 bg-base-300 border border-base-content rounded-lg shadow-sm 2xl:col-span-2">
+            <h3 className="mb-4 text-xl font-semibold text-base-content">
+              Emergency Contact
+            </h3>
+            <form>
+              <div className="grid grid-cols-6 gap-6">
+                <div className="col-span-6 sm:col-span-3">
+                  <label
+                    htmlFor="Name"
+                    className="block mb-2 text-sm font-medium text-base-content"
+                  >
+                    Name <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="Name"
+                    id="Name"
+                    value={formData.emergencyContact?.name || ""}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        emergencyContact: {
+                          name: e.target.value,
+                          phone: formData.emergencyContact?.phone || "",
+                          relationship:
+                            formData.emergencyContact?.relationship || "",
+                        },
+                      });
+                    }}
+                    disabled={!isEditing}
+                    className="input input-primary w-full"
+                    required
+                  />
+                </div>
+                <div className="col-span-6 sm:col-span-3">
+                  <label
+                    htmlFor="Relationship"
+                    className="block mb-2 text-sm font-medium text-base-content"
+                  >
+                    Relationship <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="Relationship"
+                    name="Relationship"
+                    value={formData.emergencyContact?.relationship || ""}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        emergencyContact: {
+                          name: formData.emergencyContact?.name || "",
+                          phone: formData.emergencyContact?.phone || "",
+                          relationship: e.target.value,
+                        },
+                      });
+                    }}
+                    className="input input-primary w-full text-base-content"
+                    disabled={!isEditing}
+                  />
+                </div>
+                <div className="col-span-6 sm:col-span-3">
+                  <label
+                    htmlFor="phone"
+                    className="block mb-2 text-sm font-medium text-base-content"
+                  >
+                    Phone <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    id="Phone"
+                    name="Phone"
+                    value={formData.emergencyContact?.phone || ""}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        emergencyContact: {
+                          name: formData.emergencyContact?.name || "",
+                          phone: e.target.value,
+                          relationship:
+                            formData.emergencyContact?.relationship || "",
+                        },
+                      });
+                    }}
+                    className="input input-primary w-full text-base-content"
+                    disabled={!isEditing}
+                  />
+                </div>
+              </div>
+              <button
+                className="btn btn-primary mt-4"
+                onClick={handleSubmit}
                 disabled={!isEditing}
-                required
-              />
-            </div>
-            {/* Relationship */}
-            <div className="flex flex-col">
-              <label className="text-base-content font-medium mb-1">
-                Relationship <span className="text-error">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.emergencyContact?.relationship || ""}
-                onChange={(e) => {
-                  setFormData({
-                    ...formData,
-                    emergencyContact: {
-                      name: formData.emergencyContact?.name || "",
-                      phone: formData.emergencyContact?.phone || "",
-                      relationship: e.target.value,
-                    },
-                  });
-                }}
-                className="input input-bordered w-full text-base-content"
-                placeholder="Emergency Contact Relationship"
-                disabled={!isEditing}
-                required
-              />
-            </div>
+              >
+                Save All
+              </button>
+            </form>
           </div>
         </div>
       </div>

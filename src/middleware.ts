@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 const verifyToken = async (token: string, url: string) => {
   try {
-    const response = await fetch(`${url}/api/auth/middlewate-verify-token`, {
+    const response = await fetch(`${url}/api/auth/middleware-verify-token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

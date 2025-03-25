@@ -1,4 +1,5 @@
 "use client";
+import { IconEye, IconEyeOff } from "@tabler/icons-react";
 import axios, { AxiosResponse } from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -7,6 +8,7 @@ import toast from "react-hot-toast";
 const SignUp = () => {
   const [disabled, setDisabled] = useState(true);
   const [emailVerified, setEmailVerified] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState();
   const [formData, setFormData] = useState({
     name: "",
@@ -43,31 +45,33 @@ const SignUp = () => {
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const updatedFormData = {
-          ...formData,
-          location: {
-            type: "Point",
-            coordinates: [position.coords.latitude, position.coords.longitude],
-          },
-        };
-        setFormData(updatedFormData);
-        try {
-          const response = axios.post("/api/auth/signup", { formData });
-          toast.promise(response, {
-            loading: "Creating Account",
-            success: () => {
-              router.push("/login");
-              return "Account Created Successfully";
+        setFormData((prevData) => {
+          const updatedFormData = {
+            ...prevData,
+            location: {
+              type: "Point",
+              coordinates: [
+                position.coords.latitude,
+                position.coords.longitude,
+              ],
             },
-            error: (err: unknown) => {
-              console.log(err);
-              return err.response?.data?.message || "Error creating account";
+          };
+          const res = axios.post("/api/auth/signup", {
+            formData: updatedFormData,
+          });
+          toast.promise(res, {
+            loading: "Signing Up...",
+            success: () => {
+              toast.success("Account Created Successfully");
+              router.push("/login");
+            },
+            error: (err: any) => {
+              console.error(err);
+              return err.data?.response.message || "Something went wrong";
             },
           });
-        } catch (error) {
-          console.error("Signup error:", error);
-          toast.error("Failed to create account");
-        }
+          return updatedFormData;
+        });
       },
       (error) => {
         toast.error(
@@ -79,19 +83,28 @@ const SignUp = () => {
   };
 
   const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!formData.name) {
+      toast.error("Name is required for images");
+      return;
+    }
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (file.size > 5 * 1024 * 1024) {
         alert("File size exceeds 5MB");
         return;
       }
-      const imageResponse = axios.postForm("/api/helper/upload-img", { file });
+      const imageResponse = axios.postForm("/api/helper/upload-img", {
+        file,
+        name: formData.name,
+        folderName: "profileImages",
+      });
+      console.log(imageResponse);
       toast.promise(imageResponse, {
         loading: "Uploading Image...",
         success: (data: AxiosResponse) => {
           setFormData({
             ...formData,
-            profileImage: data.data.data.url,
+            profileImage: data.data.path,
           });
           return "Image Uploaded Successfully";
         },
@@ -126,7 +139,8 @@ const SignUp = () => {
           setOtp(data.data.token);
           return "Email Sent!!";
         },
-        error: (err) => err.data?.response.message || "Something went wrong",
+        error: (err: any) =>
+          err.data?.response.message || "Something went wrong",
       });
     } catch (error) {
       console.log(error);
@@ -194,8 +208,11 @@ const SignUp = () => {
                 </select>
                 <input
                   type="text"
+                  id="phone"
                   placeholder="Enter Your Contact No"
                   className="input input-bordered input-primary w-full text-base-content placeholder:text-base-content/70"
+                  maxLength={10}
+                  minLength={10}
                   value={formData.phone}
                   onChange={(e) => {
                     setFormData({ ...formData, phone: e.target.value });
@@ -204,19 +221,34 @@ const SignUp = () => {
               </div>
               <input
                 type="file"
-                className="file-input file-input-bordered w-full text-base-content"
-                accept="image/* .png .jpeg .jpg"
+                className="file-input file-input-bordered file-input-primary w-full text-base-content"
+                accept="image/* .jpg"
                 onChange={handleProfileImageChange}
               />
-              <input
-                type="Password"
-                placeholder="Enter Your Password"
-                className="input input-bordered input-primary w-full text-base-content placeholder:text-base-content/70"
-                value={formData.password}
-                onChange={(e) => {
-                  setFormData({ ...formData, password: e.target.value });
-                }}
-              />
+              <label className="input input-primary input-bordered flex items-center gap-2">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter Your Password"
+                  className="w-full text-base-content placeholder:text-base-content/70"
+                  value={formData.password}
+                  onChange={(e) => {
+                    setFormData({ ...formData, password: e.target.value });
+                  }}
+                />
+                {showPassword ? (
+                  <IconEyeOff
+                    size={20}
+                    className="cursor-pointer"
+                    onClick={() => setShowPassword(!showPassword)}
+                  />
+                ) : (
+                  <IconEye
+                    size={20}
+                    className="cursor-pointer"
+                    onClick={() => setShowPassword(!showPassword)}
+                  />
+                )}
+              </label>
               <div className="flex items-center gap-1.5  justify-start pl-2">
                 <div className="form-control">
                   <label className="label cursor-pointer">
@@ -259,13 +291,13 @@ const SignUp = () => {
         </div>
       </div>
       <dialog id="otpContainer" className="modal">
-        <div className="modal-box">
+        <div className="modal-box space-y-3">
           <form method="dialog">
             <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
               ✕
             </button>
           </form>
-          <h3 className="font-bold text-lg text-center">
+          <h3 className="font-bold text-2xl text-center uppercase">
             Please Enter The OTP
           </h3>
           <input

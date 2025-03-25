@@ -1,74 +1,48 @@
 "use client";
-import React from "react";
+import {
+  IconCliffJumping,
+  IconClock,
+  IconMail,
+  IconPhone,
+  IconUser,
+} from "@tabler/icons-react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+
+interface Location {
+  name: string;
+  location: string;
+  description: string;
+  image: string;
+  category: string;
+  bestTimeToVisit: string;
+  activities: string[];
+  coordinator: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+}
 
 const TravelSuggestions = () => {
-  const topLocations = [
-    {
-      id: 1,
-      name: "Gateway of India",
-      location: "Mumbai",
-      description:
-        "A historic monument and one of the most iconic landmarks of Mumbai, offering stunning sea views and cultural experiences.",
-      image:
-        "https://upload.wikimedia.org/wikipedia/commons/1/1e/Gateway_of_India_%28Mumbai%29.jpg",
-    },
-    {
-      id: 2,
-      name: "Marine Drive",
-      location: "Mumbai",
-      description:
-        "A picturesque promenade along the Arabian Sea, famous for its sunset views and vibrant nightlife.",
-      image:
-        "https://upload.wikimedia.org/wikipedia/commons/9/9a/Marine_Drive_Mumbai.jpg",
-    },
-    {
-      id: 3,
-      name: "Ajanta & Ellora Caves",
-      location: "Aurangabad",
-      description:
-        "UNESCO World Heritage Sites featuring stunning rock-cut caves, ancient paintings, and sculptures dating back to the 2nd century BCE.",
-      image:
-        "https://upload.wikimedia.org/wikipedia/commons/8/89/Ajanta_caves_panorama.jpg",
-    },
-    {
-      id: 4,
-      name: "Mahabaleshwar",
-      location: "Satara",
-      description:
-        "A popular hill station known for its scenic viewpoints, strawberry farms, and pleasant climate throughout the year.",
-      image:
-        "https://upload.wikimedia.org/wikipedia/commons/d/d1/Mahabaleshwar_Sunset_Point.jpg",
-    },
-    {
-      id: 5,
-      name: "Lonavala & Khandala",
-      location: "Pune",
-      description:
-        "Famous twin hill stations offering breathtaking waterfalls, forts, and lush green landscapes.",
-      image:
-        "https://upload.wikimedia.org/wikipedia/commons/a/a1/Lonavala_Bushi_Dam.jpg",
-    },
-  ];
+  const [locations, setLocations] = useState<Location[]>();
+  const fetchLocation = async () => {
+    const res = await axios.get("/api/location");
+    setLocations(res.data);
+  };
+  useEffect(() => {
+    fetchLocation();
+  }, []);
 
   return (
     <>
-      <h1 className="text-3xl font-bold text-primary mb-4 text-center">
+      <h1 className="text-4xl font-bold text-primary mb-4 text-center uppercase">
         Top Travel Destinations in Maharashtra
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-        {topLocations.map((location) => (
-          <div className="card bg-base-300 w-80 shadow-xl" key={location.id}>
-            <figure>
-              <img
-                src={location.image}
-                alt={location.name}
-                className="h-56 object-fill"
-              />
-            </figure>
-            <div className="card-body">
-              <h2 className="card-title">{location.name}</h2>
-              <p>{location.description}</p>
-            </div>
+        {locations?.map((location: Location, index: number) => (
+          <div key={index} className="w-full">
+            <LocationCard location={location} />
           </div>
         ))}
       </div>
@@ -77,3 +51,68 @@ const TravelSuggestions = () => {
 };
 
 export default TravelSuggestions;
+
+const LocationCard = ({ location }: { location: Location }) => {
+  return (
+    <div className="card bg-base-300 w-full shadow-xl rounded-lg overflow-hidden">
+      {/* Profile Image */}
+      <figure>
+        <img
+          src={location.image}
+          alt={location.name}
+          className="h-52 w-full object-cover"
+        />
+      </figure>
+
+      <div className="card-body">
+        {/* Name & Score */}
+        <h2 className="card-title capitalize text-primary flex justify-between items-center">
+          {location.name}
+        </h2>
+
+        {/* Bio */}
+        <p className="text-base-content">
+          {location.description || "No bio available"}
+        </p>
+
+        <div className="mt-3 space-y-1">
+          <p className="flex items-center text-base-content/70">
+            <IconUser className="w-5 h-5 mr-2 text-secondary" />{" "}
+            {location.coordinator.name}
+          </p>
+          <p className="flex items-center text-base-content/70">
+            <IconMail className="w-5 h-5 mr-2 text-secondary" />{" "}
+            {location.coordinator.email}
+          </p>
+          <p className="flex items-center text-base-content/70">
+            <IconPhone className="w-5 h-5 mr-2 text-secondary" />{" "}
+            {location.coordinator.phone || "Not provided"}
+          </p>
+        </div>
+
+        {/* Interests */}
+        {location.activities.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {location.activities.map((interest: string, index: number) => (
+              <div key={index} className="badge badge-outline text-sm">
+                {interest}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="card-actions mt-4 flex flex-row sm:flex-row gap-2">
+          <p className="btn btn-primary w-full capitalize">
+            <IconCliffJumping size={18} />
+            {location.category}
+          </p>
+          <p className="btn btn-primary w-full capitalize">
+            <IconClock size={18} />
+            {location.bestTimeToVisit}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};

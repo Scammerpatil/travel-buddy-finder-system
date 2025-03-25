@@ -43,11 +43,11 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     path: "/user/hotel-bookings",
     icon: <IconBuildingSkyscraper width="24" height="24" />,
   },
-  {
-    title: "Split Costs",
-    path: "/user/split-costs",
-    icon: <IconWallet width="24" height="24" />,
-  },
+  // {
+  //   title: "Split Costs",
+  //   path: "/user/split-costs",
+  //   icon: <IconWallet width="24" height="24" />,
+  // },
   {
     title: "Messages",
     path: "/user/messages",
