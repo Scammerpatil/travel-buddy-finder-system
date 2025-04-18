@@ -42,7 +42,7 @@ const TripPage = () => {
           ))}
         </div>
       )}
-      <div className="flex justify-center mb-6 absolute bottom-0 left-0 right-0">
+      <div className="flex justify-center mt-10">
         <Link href="my-trips/new" className="btn btn-primary">
           Plan a New Trip
         </Link>
@@ -75,14 +75,6 @@ const TripCard = ({ trip }: { trip: Trip }) => {
       <p className="text-sm text-base-content/80">
         Members: {trip.members.map((member) => member.name).join(", ")}
       </p>
-      {/* <div className="mt-4">
-        <Link
-          href={`/trip/details?id=${trip._id}`}
-          className="btn btn-secondary"
-        >
-          View Details
-        </Link>
-      </div> */}
     </div>
   );
 };

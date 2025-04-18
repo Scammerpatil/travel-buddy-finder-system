@@ -79,15 +79,6 @@ const Profile = () => {
           </p>
 
           <p className="pt-4 text-base font-bold flex items-center justify-center lg:justify-start gap-2">
-            <IconPhone className="text-success" />
-            {user?.phone}
-          </p>
-          <p className="pt-4 text-base font-bold flex items-center justify-center lg:justify-start gap-2">
-            <IconMail className="text-success" />
-            {user?.email}
-          </p>
-
-          <p className="pt-4 text-base font-bold flex items-center justify-center lg:justify-start gap-2">
             <IconLanguage className="text-success" />
             {user?.languages?.join(", ") || "N/A"}
           </p>

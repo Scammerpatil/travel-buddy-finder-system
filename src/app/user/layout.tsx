@@ -5,9 +5,10 @@ import { UserProvider, useUser } from "@/context/UserContext";
 import SideNav from "./SideNav";
 import { useEffect } from "react";
 import axios from "axios";
+import FillDetails from "@/Components/FillDetails";
 
 const Component = ({ children }: { children: React.ReactNode }) => {
-  const { setUser } = useUser();
+  const { setUser, user } = useUser();
   useEffect(() => {
     const fetchUser = async () => {
       const response = await axios.get("/api/auth/verifytoken");
@@ -29,8 +30,14 @@ const Component = ({ children }: { children: React.ReactNode }) => {
         />
       </head>
       <body className={`antialiased`}>
-        <Toaster />
-        <SideNav>{children}</SideNav>
+        {user?.destinations?.length === 0 || user?.interests?.length === 0 ? (
+          <FillDetails />
+        ) : (
+          <>
+            <Toaster />
+            <SideNav>{children}</SideNav>
+          </>
+        )}
       </body>
     </html>
   );

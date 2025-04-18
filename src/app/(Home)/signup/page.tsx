@@ -2,7 +2,7 @@
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
 import axios, { AxiosResponse } from "axios";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 const SignUp = () => {
@@ -24,6 +24,30 @@ const SignUp = () => {
     },
   });
   const router = useRouter();
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData((prevData) => ({
+          ...prevData,
+          location: {
+            type: "Point",
+            coordinates: [position.coords.latitude, position.coords.longitude],
+          },
+        }));
+      },
+      (error) => {
+        toast.error(
+          "Unable to retrieve location. Please allow location access."
+        );
+        console.error("Geolocation error:", error);
+      }
+    );
+  }, []);
 
   const handleSubmit = async () => {
     if (
@@ -37,49 +61,20 @@ const SignUp = () => {
       toast.error("Please fill all the fields");
       return;
     }
-
-    if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser.");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        setFormData((prevData) => {
-          const updatedFormData = {
-            ...prevData,
-            location: {
-              type: "Point",
-              coordinates: [
-                position.coords.latitude,
-                position.coords.longitude,
-              ],
-            },
-          };
-          const res = axios.post("/api/auth/signup", {
-            formData: updatedFormData,
-          });
-          toast.promise(res, {
-            loading: "Signing Up...",
-            success: () => {
-              toast.success("Account Created Successfully");
-              router.push("/login");
-            },
-            error: (err: any) => {
-              console.error(err);
-              return err.data?.response.message || "Something went wrong";
-            },
-          });
-          return updatedFormData;
-        });
+    const res = axios.post("/api/auth/signup", {
+      formData,
+    });
+    toast.promise(res, {
+      loading: "Signing Up...",
+      success: () => {
+        toast.success("Account Created Successfully");
+        router.push("/login");
       },
-      (error) => {
-        toast.error(
-          "Unable to retrieve location. Please allow location access."
-        );
-        console.error("Geolocation error:", error);
-      }
-    );
+      error: (err: any) => {
+        console.error(err);
+        return err.data?.response.message || "Something went wrong";
+      },
+    });
   };
 
   const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,7 +93,6 @@ const SignUp = () => {
         name: formData.name,
         folderName: "profileImages",
       });
-      console.log(imageResponse);
       toast.promise(imageResponse, {
         loading: "Uploading Image...",
         success: (data: AxiosResponse) => {

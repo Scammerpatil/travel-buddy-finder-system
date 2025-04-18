@@ -34,12 +34,60 @@ const MatchesPage = () => {
 
   const fetchMatches = async () => {
     try {
-      const matchedUsers = await axios.get("/api/user/getMatches");
-      setMatches(matchedUsers.data.matches);
-      setFilteredMatches(matchedUsers.data.matches);
+      const res = await axios.get("/api/user/getMatches");
+      const allMatches = res.data.matches;
+
+      if (!user?.location?.coordinates) return;
+
+      const userCoords = user.location.coordinates;
+
+      const matchesWithDistance = allMatches.map((match: any) => {
+        const matchCoords = match.user?.location?.coordinates;
+        const distance = calculateDistance(
+          userCoords[1],
+          userCoords[0],
+          matchCoords?.[1],
+          matchCoords?.[0]
+        );
+        return { ...match, distance: Math.round(distance) };
+      });
+
+      matchesWithDistance.sort((a, b) => a.distance - b.distance);
+
+      setMatches(matchesWithDistance);
+      setFilteredMatches(matchesWithDistance);
     } catch (error) {
       console.error("Error finding matches:", error);
     }
+  };
+
+  const calculateDistance = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ): number => {
+    if (
+      lat1 === undefined ||
+      lon1 === undefined ||
+      lat2 === undefined ||
+      lon2 === undefined
+    )
+      return Infinity;
+
+    const toRad = (value: number) => (value * Math.PI) / 180;
+
+    const R = 6371;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
   };
 
   const handleSearch = () => {
@@ -101,11 +149,8 @@ const MatchCard = ({ match }: { match: any }) => {
   const { user, score } = match;
   const googleMapsLink = `https://www.google.com/maps?q=${user.location.coordinates[1]},${user.location.coordinates[0]}`;
 
-  // Convert score to stars (out of 5)
-  const starRating = Math.round((score / 100) * 5);
-
   return (
-    <div className="card bg-base-300 w-full shadow-xl rounded-lg overflow-hidden">
+    <div className="card bg-base-300 w-full shadow-xl rounded-lg indicator">
       {/* Profile Image */}
       <figure>
         <img
@@ -120,34 +165,18 @@ const MatchCard = ({ match }: { match: any }) => {
         <h2 className="card-title capitalize text-primary flex justify-between items-center">
           {user.name}
           <div className="flex items-center gap-1 text-warning">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <IconStarFilled
-                key={i}
-                size={20}
-                className={
-                  i < starRating ? "text-warning" : "text-base-content/40"
-                }
-              />
-            ))}
             <span className="text-sm font-semibold text-base-content/80">
-              {score}%
+              {score}% Match
+            </span>
+            <br />
+            <span className="text-xs text-info font-semibold indicator-item badge badge-primary">
+              {match.distance} KM
             </span>
           </div>
         </h2>
 
         {/* Bio */}
         <p className="text-base-content">{user.bio || "No bio available"}</p>
-
-        {/* Contact Info */}
-        <div className="mt-3 space-y-1">
-          <p className="flex items-center text-base-content/70">
-            <IconMail className="w-5 h-5 mr-2 text-secondary" /> {user.email}
-          </p>
-          <p className="flex items-center text-base-content/70">
-            <IconPhone className="w-5 h-5 mr-2 text-secondary" />{" "}
-            {user.phone || "Not provided"}
-          </p>
-        </div>
 
         {/* Interests */}
         {user.interests.length > 0 && (

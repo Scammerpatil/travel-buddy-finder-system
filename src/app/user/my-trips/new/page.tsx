@@ -15,6 +15,8 @@ const NewTrip = () => {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [cars, setCars] = useState<Car[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredUsers, setFilteredUsers] = useState(users);
   const [trip, setTrip] = useState({
     type: "",
     destination: "",
@@ -49,6 +51,16 @@ const NewTrip = () => {
       return { ...prevData, [category]: updatedList };
     });
   };
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const filtered = users.filter((user) =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredUsers(filtered);
+    }, 200);
+
+    return () => clearTimeout(timeout);
+  }, [searchTerm, users]);
 
   const handleMakeTrip = async () => {
     try {
@@ -176,8 +188,18 @@ const NewTrip = () => {
               <div className="label">
                 <span className="label-text text-base">Choose Members</span>
               </div>
+
+              {/* Search Input */}
+              <input
+                type="text"
+                placeholder="Search by name"
+                className="input input-primary input-bordered w-full mb-4"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+
               <div className="flex flex-row flex-wrap justify-around gap-3">
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <label
                     key={user._id}
                     className="flex flex-row items-center justify-center gap-2"
@@ -194,6 +216,7 @@ const NewTrip = () => {
               </div>
             </label>
           )}
+
           <button className="btn btn-primary w-full" onClick={handleMakeTrip}>
             Plan Trip
           </button>

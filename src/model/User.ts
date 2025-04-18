@@ -67,6 +67,18 @@ const UserSchema = new Schema({
   },
 
   isVerified: { type: Boolean, default: false },
+  season: {
+    type: String,
+    enum: ["Summer", "Winter", "Monsoon", "All Year Round"],
+  },
+  spontaneity: {
+    type: String,
+    enum: ["Planned", "Spontaneous"],
+  },
+  connectWithOthers: {
+    type: String,
+    enum: ["Yes", "No"],
+  },
   emergencyContact: {
     name: { type: String },
     phone: { type: String },

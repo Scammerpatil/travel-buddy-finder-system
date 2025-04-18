@@ -43,11 +43,6 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     path: "/user/hotel-bookings",
     icon: <IconBuildingSkyscraper width="24" height="24" />,
   },
-  // {
-  //   title: "Split Costs",
-  //   path: "/user/split-costs",
-  //   icon: <IconWallet width="24" height="24" />,
-  // },
   {
     title: "Messages",
     path: "/user/messages",
@@ -57,15 +52,5 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     title: "Rate Users",
     path: "/user/rating",
     icon: <IconStar width="24" height="24" />,
-  },
-  {
-    title: "Settings",
-    path: "/user/settings",
-    icon: <IconSettings width="24" height="24" />,
-  },
-  {
-    title: "Support",
-    path: "/user/support",
-    icon: <IconHelpCircle width="24" height="24" />,
   },
 ];

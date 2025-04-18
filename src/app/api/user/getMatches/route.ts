@@ -9,16 +9,19 @@ export async function GET(req: NextRequest) {
     if (!token) {
       return NextResponse.json({ message: "Session Expired" }, { status: 401 });
     }
+
     const data = jwt.verify(token, process.env.JWT_SECRET!) as {
       email: string;
     };
     if (!data) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
+
     const user = await User.findOne({ email: data.email });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
     const matches = await findMatches(user);
     return NextResponse.json({ matches }, { status: 200 });
   } catch (err) {
@@ -38,6 +41,10 @@ const findMatches = async (user: UserType) => {
     const matchScore = calculateMatchScore(user, matchUser);
     matches.push({ user: matchUser, score: matchScore });
   }
+
+  // Sort matches by descending score
+  matches.sort((a, b) => b.score - a.score);
+
   return matches;
 };
 
@@ -45,10 +52,11 @@ const calculateMatchScore = (user1: UserType, user2: UserType) => {
   let score = 0;
 
   if (
-    user1?.destinations!.some((dest) => user2?.destinations!.includes(dest))
+    user1?.destinations?.some((dest) => user2?.destinations?.includes(dest))
   ) {
     score += 50;
   }
+
   if (
     user1.travelDates?.start &&
     user1.travelDates?.end &&
@@ -65,15 +73,15 @@ const calculateMatchScore = (user1: UserType, user2: UserType) => {
     }
   }
 
-  if (user1.budget === user2.budget) {
+  if (user1.budget && user1.budget === user2.budget) {
     score += 10;
   }
 
-  const commonInterests = user1?.interests!.filter((interest) =>
-    user2?.interests!.includes(interest)
+  const commonInterests = user1?.interests?.filter((interest) =>
+    user2?.interests?.includes(interest)
   );
-  if (commonInterests.length > 0) {
-    score += (commonInterests.length / user1?.interests!.length) * 15;
+  if (commonInterests && commonInterests.length > 0) {
+    score += (commonInterests.length / user1.interests.length) * 15;
   }
 
   if (
@@ -83,5 +91,22 @@ const calculateMatchScore = (user1: UserType, user2: UserType) => {
   ) {
     score += 5;
   }
+
+  if (user1.travelStyle && user1.travelStyle === user2.travelStyle) {
+    score += 5;
+  }
+
+  if (user1.season && user1.season === user2.season) {
+    score += 3;
+  }
+
+  if (user1.spontaneity && user1.spontaneity === user2.spontaneity) {
+    score += 3;
+  }
+
+  if (user1.connectWithOthers === "Yes" && user2.connectWithOthers === "Yes") {
+    score += 2;
+  }
+
   return score;
 };

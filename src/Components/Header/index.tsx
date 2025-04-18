@@ -24,20 +24,6 @@ const Header = () => {
             </div>
           </Link>
         </div>
-        <div className="navbar-center hidden lg:flex">
-          <ul className="menu menu-horizontal px-1 text-base text-base-content">
-            <li>
-              <Link href="/about">About</Link>
-            </li>
-            <li>
-              <Link href="/features">Features</Link>
-            </li>
-            <li>
-              <Link href="/contact">Contact</Link>
-            </li>
-          </ul>
-        </div>
-
         <div className="navbar-end space-x-3">
           <Link href="/login" className="btn btn-accent">
             Login
