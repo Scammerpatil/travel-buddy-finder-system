@@ -13,6 +13,11 @@ const questions = [
     options: ["Backpacking", "Luxury", "Adventure", "Cultural"],
   },
   {
+    key: "age",
+    question: "How old are you?",
+    inputType: "number",
+  },
+  {
     key: "preferredCompanion",
     question: "Who do you prefer to travel with?",
     options: ["Anyone", "Solo", "Same Gender", "Small Group", "Large Group"],
@@ -55,7 +60,7 @@ const questions = [
   {
     key: "spontaneity",
     question: "Do you prefer planned or spontaneous trips?",
-    options: ["Planned", "Spontaneous"],
+    options: ["Spontaneous", "Planned", "Flexible"],
   },
   {
     key: "connectWithOthers",
@@ -72,7 +77,7 @@ export default function FillDetails() {
 
   if (!user) return null;
 
-  const handleOptionSelect = (option) => {
+  const handleOptionSelect = (option: any) => {
     if (current.multi) {
       const currentAnswers = answers[current.key] || [];
       if (currentAnswers.includes(option)) {
@@ -132,22 +137,46 @@ export default function FillDetails() {
                 {questions[step].question}
               </h2>
               <div className="flex flex-wrap gap-4">
-                {questions[step].options.map((option) => {
-                  const selected = questions[step].multi
-                    ? answers[questions[step].key]?.includes(option)
-                    : answers[questions[step].key] === option;
-                  return (
+                {current.inputType === "number" ? (
+                  <div className="w-full">
+                    <input
+                      type="number"
+                      placeholder="Enter your age"
+                      className="input input-bordered w-full"
+                      value={answers[current.key] || ""}
+                      onChange={(e) =>
+                        setAnswers({
+                          ...answers,
+                          [current.key]: e.target.value,
+                        })
+                      }
+                    />
                     <button
-                      key={option}
-                      className={`btn font-medium ${
-                        selected ? "btn-accent" : "btn-outline btn-primary"
-                      }`}
-                      onClick={() => handleOptionSelect(option)}
+                      className="btn btn-success mt-4 w-full"
+                      onClick={handleNext}
+                      disabled={!answers[current.key]}
                     >
-                      {option}
+                      Next
                     </button>
-                  );
-                })}
+                  </div>
+                ) : (
+                  current.options?.map((option) => {
+                    const selected = current.multi
+                      ? answers[current.key]?.includes(option)
+                      : answers[current.key] === option;
+                    return (
+                      <button
+                        key={option}
+                        className={`btn font-medium ${
+                          selected ? "btn-accent" : "btn-outline btn-primary"
+                        }`}
+                        onClick={() => handleOptionSelect(option)}
+                      >
+                        {option}
+                      </button>
+                    );
+                  })
+                )}
               </div>
               {questions[step].multi && (
                 <button

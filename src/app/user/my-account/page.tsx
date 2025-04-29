@@ -23,14 +23,24 @@ const travelOptions = {
     "Small Group",
     "Large Group",
   ],
-  interests: ["Hiking", "Beaches", "Food", "Culture", "Photography"],
+  interests: ["Food", "Nature", "Culture", "Nightlife", "Photography"],
   languages: LANGUAGES,
-  destinations: POPULAR_DESTINATION,
+  destinations: [
+    "Mountains",
+    "Beaches",
+    "Cities",
+    "Forests",
+    "Historical Sites",
+  ],
+  season: ["Summer", "Winter", "Monsoon", "All Year Round"],
+  spontaneity: ["Spontaneous", "Planned", "Flexible"],
+  connectWithOthers: ["Yes", "No"],
 };
 
 const Settings = () => {
   const { user } = useUser();
   if (!user) return null;
+  console.log(user);
   return <Profile user={user} />;
 };
 
@@ -134,7 +144,7 @@ const Profile = ({ user }: { user: User }) => {
               </div>
             </div>
           </div>
-          <div className="p-4 mb-4 bg-base-200 border border-base-content rounded-lg shadow-sm 2xl:col-span-2">
+          <div className="p-4 mb-4 bg-base-300 border border-base-content rounded-lg shadow-sm 2xl:col-span-2">
             <h3 className="mb-4 text-xl font-semibold">Travel Preferences</h3>
             <div className="mb-4">
               <label
@@ -196,6 +206,93 @@ const Profile = ({ user }: { user: User }) => {
             </div>
             <div className="mb-6">
               <label
+                htmlFor="season"
+                className="block mb-2 text-sm font-medium text-base-content"
+              >
+                Season
+              </label>
+              <select
+                value={formData.season || ""}
+                onChange={(e) => {
+                  setFormData({
+                    ...formData,
+                    season: e.target.value,
+                  });
+                }}
+                className="select select-primary select-bordered w-full text-base-content"
+                disabled={!isEditing}
+                required
+              >
+                <option value="" disabled>
+                  Select Season
+                </option>
+                {travelOptions.season.map((budget) => (
+                  <option key={budget} value={budget}>
+                    {budget}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-6">
+              <label
+                htmlFor="spontaneity"
+                className="block mb-2 text-sm font-medium text-base-content"
+              >
+                Spontaneity
+              </label>
+              <select
+                value={formData.spontaneity || ""}
+                onChange={(e) => {
+                  setFormData({
+                    ...formData,
+                    spontaneity: e.target.value,
+                  });
+                }}
+                className="select select-primary select-bordered w-full text-base-content"
+                disabled={!isEditing}
+                required
+              >
+                <option value="" disabled>
+                  Select Spontaneity
+                </option>
+                {travelOptions.spontaneity.map((budget) => (
+                  <option key={budget} value={budget}>
+                    {budget}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-6">
+              <label
+                htmlFor="connectWithOthers"
+                className="block mb-2 text-sm font-medium text-base-content"
+              >
+                Connection with Others
+              </label>
+              <select
+                value={formData.connectWithOthers || ""}
+                onChange={(e) => {
+                  setFormData({
+                    ...formData,
+                    connectWithOthers: e.target.value,
+                  });
+                }}
+                className="select select-primary select-bordered w-full text-base-content"
+                disabled={!isEditing}
+                required
+              >
+                <option value="" disabled>
+                  Select Connection with Others
+                </option>
+                {travelOptions.connectWithOthers.map((budget) => (
+                  <option key={budget} value={budget}>
+                    {budget}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-6">
+              <label
                 htmlFor="preferredCompanion"
                 className="block mb-2 text-sm font-medium text-base-content"
               >
@@ -223,18 +320,18 @@ const Profile = ({ user }: { user: User }) => {
                 ))}
               </select>
             </div>
-            <div className="flex flex-row justify-around">
-              <div className="mb-6">
-                <label
-                  htmlFor="languages"
-                  className="block mb-2 text-sm font-medium text-base-content"
-                >
-                  Languages
-                </label>
+            <div className="mb-6 flex flex-col mt-12">
+              <label
+                htmlFor="languages"
+                className="block mb-2 text-sm font-medium text-base-content"
+              >
+                Languages
+              </label>
+              <div className="flex flex-row flex-wrap justify-center items-center gap-3">
                 {LANGUAGES.map((option) => (
                   <label
                     key={option}
-                    className="flex flex-row items-center space-x-2 space-y-2"
+                    className="flex flex-row items-center justify-center gap-2"
                   >
                     <input
                       type="checkbox"
@@ -247,17 +344,19 @@ const Profile = ({ user }: { user: User }) => {
                   </label>
                 ))}
               </div>
-              <div className="mb-6">
-                <label
-                  htmlFor="Destinations"
-                  className="block mb-2 text-sm font-medium text-base-content"
-                >
-                  Destinations
-                </label>
+            </div>
+            <div className="mb-6 mt-12">
+              <label
+                htmlFor="Destinations"
+                className="block mb-2 text-sm font-medium text-base-content"
+              >
+                Destinations
+              </label>
+              <div className="flex flex-row flex-wrap justify-center items-center gap-3">
                 {travelOptions.destinations.map((option) => (
                   <label
                     key={option}
-                    className="flex items-center space-x-2 space-y-2"
+                    className="flex flex-row items-center justify-center gap-2"
                   >
                     <input
                       type="checkbox"
@@ -273,14 +372,14 @@ const Profile = ({ user }: { user: User }) => {
                 ))}
               </div>
             </div>
-            <div className="mb-6">
+            <div className="mb-6 mt-9">
               <label
                 htmlFor="interests"
                 className="block mb-2 text-sm font-medium text-base-content"
               >
                 Interests
               </label>
-              <div className="flex flex-row flex-wrap justify-around gap-3">
+              <div className="flex flex-row flex-wrap justify-center gap-3">
                 {travelOptions.interests.map((option) => (
                   <label
                     key={option}

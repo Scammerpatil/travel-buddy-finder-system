@@ -2,11 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "@/context/UserContext";
 import {
-  IconMail,
   IconMapPin,
-  IconPhone,
   IconSearch,
-  IconStarFilled,
   IconUser,
   IconUsers,
 } from "@tabler/icons-react";
@@ -36,7 +33,10 @@ const MatchesPage = () => {
     try {
       const res = await axios.get("/api/user/getMatches");
       const allMatches = res.data.matches;
-
+      if (!allMatches || allMatches.length === 0) {
+        setData("No Matches Found!!");
+        return;
+      }
       if (!user?.location?.coordinates) return;
 
       const userCoords = user.location.coordinates;
@@ -52,7 +52,7 @@ const MatchesPage = () => {
         return { ...match, distance: Math.round(distance) };
       });
 
-      matchesWithDistance.sort((a, b) => a.distance - b.distance);
+      matchesWithDistance.sort((a: any, b: any) => a.distance - b.distance);
 
       setMatches(matchesWithDistance);
       setFilteredMatches(matchesWithDistance);
@@ -129,7 +129,10 @@ const MatchesPage = () => {
           <p className="text-center text-3xl uppercase font-semibold flex items-center justify-center">
             {data}
           </p>
-          <Link href="/user/settings" className="mt-10 btn btn-primary w-full">
+          <Link
+            href="/user/my-account"
+            className="mt-10 btn btn-primary w-full"
+          >
             Go and fill the details
           </Link>
         </div>

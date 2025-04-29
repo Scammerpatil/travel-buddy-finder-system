@@ -18,6 +18,10 @@ export async function PUT(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
+    user.age = answers.age || user.age;
+    user.preferredCompanion =
+      answers.preferredCompanion || user.preferredCompanion;
+    user.budget = answers.budget || user.budget;
     user.destinations = answers.destinations || user.destinations;
     user.interests = answers.interests || user.interests;
     user.season = answers.season || user.season;

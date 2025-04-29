@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import User from "@/model/User";
 import { User as UserType } from "@/types/user";
+import { createObjectCsvWriter } from "csv-writer";
+import { exec } from "child_process";
+import { promisify } from "util";
+const execAsync = promisify(exec);
 
 export async function GET(req: NextRequest) {
   try {
@@ -22,8 +26,28 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const matches = await findMatches(user);
-    return NextResponse.json({ matches }, { status: 200 });
+    const allUsers = await User.find();
+    const csvPath = "python/user.csv";
+    const csvWriter = createObjectCsvWriter({
+      path: csvPath,
+      header: [
+        { id: "_id", title: "id" },
+        { id: "age", title: "age" },
+        { id: "gender", title: "gender" },
+        { id: "budget", title: "budget" },
+        { id: "travelStyle", title: "travelStyle" },
+        { id: "preferredCompanion", title: "preferredCompanion" },
+        { id: "season", title: "season" },
+        { id: "spontaneity", title: "spontaneity" },
+        { id: "connectWithOthers", title: "connectWithOthers" },
+      ],
+    });
+
+    await csvWriter.writeRecords(allUsers);
+    const { stdout, stderr } = await execAsync(
+      `py -3.12 python/match_maker.py ${user}`
+    );
+    return NextResponse.json({ matches: stdout }, { status: 200 });
   } catch (err) {
     console.error("Error in GET /matches:", err);
     return NextResponse.json(
@@ -42,7 +66,6 @@ const findMatches = async (user: UserType) => {
     matches.push({ user: matchUser, score: matchScore });
   }
 
-  // Sort matches by descending score
   matches.sort((a, b) => b.score - a.score);
 
   return matches;
@@ -81,7 +104,7 @@ const calculateMatchScore = (user1: UserType, user2: UserType) => {
     user2?.interests?.includes(interest)
   );
   if (commonInterests && commonInterests.length > 0) {
-    score += (commonInterests.length / user1.interests.length) * 15;
+    score += (commonInterests.length / user1.interests?.length!) * 15;
   }
 
   if (

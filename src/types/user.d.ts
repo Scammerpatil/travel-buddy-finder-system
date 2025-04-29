@@ -6,12 +6,8 @@ export interface User {
   email: string;
   password: string;
   age: number;
-  gender: string;
   phone: string;
-  location?: {
-    type: "Point";
-    coordinates: [number, number];
-  };
+  gender: string;
   address: {
     street: string;
     district: string;
@@ -19,9 +15,13 @@ export interface User {
     state: string;
     country: string;
   };
-  languages?: string[];
+  location?: {
+    type: "Point";
+    coordinates: [number, number];
+  };
   profileImage?: string;
   bio?: string;
+  languages?: string[];
   destinations?: string[];
   travelDates?: {
     start: Date;
@@ -31,6 +31,9 @@ export interface User {
   travelStyle?: string;
   interests?: string[];
   preferredCompanion?: string;
+  season?: string;
+  spontaneity?: string;
+  connectWithOthers?: string;
   isVerified?: boolean;
   emergencyContact?: {
     name: string;
