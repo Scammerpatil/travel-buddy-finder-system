@@ -100,6 +100,9 @@ export default function FillDetails() {
   const handleNext = () => {
     setStep((prev) => prev + 1);
   };
+  const handlePrevious = () => {
+    setStep((prev) => Math.max(prev - 1, 0));
+  };
 
   const handleSubmit = async () => {
     try {
@@ -184,6 +187,14 @@ export default function FillDetails() {
                   onClick={handleNext}
                 >
                   Next
+                </button>
+              )}
+              {step > 0 && (
+                <button
+                  className="btn btn-secondary mt-2 w-full"
+                  onClick={handlePrevious}
+                >
+                  Previous
                 </button>
               )}
             </motion.div>

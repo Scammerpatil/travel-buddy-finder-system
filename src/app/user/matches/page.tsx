@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useUser } from "@/context/UserContext";
+import haversine from "haversine-distance";
 import {
   IconMapPin,
   IconSearch,
@@ -33,6 +34,7 @@ const MatchesPage = () => {
     try {
       const res = await axios.get("/api/user/getMatches");
       const allMatches = res.data.matches;
+      console.log(res.data);
       if (!allMatches || allMatches.length === 0) {
         setData("No Matches Found!!");
         return;
@@ -43,12 +45,11 @@ const MatchesPage = () => {
 
       const matchesWithDistance = allMatches.map((match: any) => {
         const matchCoords = match.user?.location?.coordinates;
-        const distance = calculateDistance(
-          userCoords[1],
-          userCoords[0],
-          matchCoords?.[1],
-          matchCoords?.[0]
-        );
+        const distance =
+          haversine(
+            { lat: userCoords[1], lon: userCoords[0] },
+            { lat: matchCoords?.[1], lon: matchCoords?.[0] }
+          ) / 1000;
         return { ...match, distance: Math.round(distance) };
       });
 
@@ -59,35 +60,6 @@ const MatchesPage = () => {
     } catch (error) {
       console.error("Error finding matches:", error);
     }
-  };
-
-  const calculateDistance = (
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number => {
-    if (
-      lat1 === undefined ||
-      lon1 === undefined ||
-      lat2 === undefined ||
-      lon2 === undefined
-    )
-      return Infinity;
-
-    const toRad = (value: number) => (value * Math.PI) / 180;
-
-    const R = 6371;
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c;
   };
 
   const handleSearch = () => {
@@ -150,14 +122,14 @@ const MatchesPage = () => {
 
 const MatchCard = ({ match }: { match: any }) => {
   const { user, score } = match;
-  const googleMapsLink = `https://www.google.com/maps?q=${user.location.coordinates[1]},${user.location.coordinates[0]}`;
+  const googleMapsLink = `https://www.google.com/maps?q=${user.location.coordinates[0]},${user.location.coordinates[1]}`;
 
   return (
     <div className="card bg-base-300 w-full shadow-xl rounded-lg indicator">
       {/* Profile Image */}
       <figure>
         <img
-          src={user.profileImage}
+          src={user.profileImage || "/default-image.jpg"}
           alt={user.name}
           className="h-52 w-full object-cover"
         />

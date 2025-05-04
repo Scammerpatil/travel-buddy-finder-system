@@ -45,9 +45,17 @@ export async function GET(req: NextRequest) {
 
     await csvWriter.writeRecords(allUsers);
     const { stdout, stderr } = await execAsync(
-      `py -3.12 python/match_maker.py ${user}`
+      `py -3.12 python/match_maker.py ${user._id}`
     );
-    return NextResponse.json({ matches: stdout }, { status: 200 });
+    const rawMatches = JSON.parse(stdout);
+    var matches = [];
+    for (const match of rawMatches) {
+      const user = await User.findById(match.userId).populate("location");
+      if (user) {
+        matches.push({ user, score: match.score });
+      }
+    }
+    return NextResponse.json({ matches }, { status: 200 });
   } catch (err) {
     console.error("Error in GET /matches:", err);
     return NextResponse.json(
